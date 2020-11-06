@@ -3,7 +3,9 @@ const app = express();
 const http = require('http').createServer(app)
 const port = 8070;
 const Stream_server = require('./lib/stream_server');
-const stream = new Stream_server(http,{fps:24});
+const stream = new Stream_server(http,{
+    fps:24
+});
 
 app.set('view engine', 'ejs');
 app.use(express.static('static_files'));
