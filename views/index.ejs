@@ -6,14 +6,17 @@
     <title>Stream</title>
 </head>
 <body>
-    <button id="startStream">Start stream</button>
+    <button id="startStream" onclick="player.playStream()">Start stream</button>
+    <button id="stopStream" onclick="player.stopStream()">Stop stream</button>
+    <button id="disconnect" onclick="player.disconnect()">Disconnect</button>
 
-    <script src="/socket.io/socket.io.js"></script>
+    <script src="/scripts/http-live-player.js"></script>
     <script>
-        const socket = io();
-        document.getElementById("startStream").addEventListener('click', ()=>{
-            socket.emit("startStream");
-        });
+        var canvas = document.createElement("canvas");
+        document.body.appendChild(canvas);
+        var player = new WSAvcPlayer(canvas, "webgl", 1, 35);
+        player.connect(`ws://${document.location.host}`);
+        window.player = player;
     </script>
 </body>
 </html>
