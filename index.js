@@ -4,7 +4,7 @@ const http = require('http').createServer(app)
 const port = 8070;
 const Stream_server = require('./lib/stream_server');
 const stream = new Stream_server(http,{
-    fps:24,
+    fps:15,
     height: 360,
     width: 640
 });
@@ -18,5 +18,6 @@ app.get("/", (req, res) => {
 });
 
 http.listen(port, () =>{
+    console.clear();
     console.log(`App running and listening to port ${port}`);
 });

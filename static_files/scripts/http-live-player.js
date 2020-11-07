@@ -5203,9 +5203,9 @@ var WSAvcPlayer = new Class({
     log("Sent " + message);
   },
 
-  pauseStream : function() {
-    this.ws.send("PAUSESTREAM");
-    log("Sent PAUSESTREAM");
+  pauseStream : function(target="client") {
+    this.ws.send(target+"PAUSESTREAM");
+    log("Sent "+target+"PAUSESTREAM");
   },
 
   stopStream : function() {
