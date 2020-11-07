@@ -1,7 +1,7 @@
 {
-  "name": "prototype_camera",
-  "version": "0.0.1",
-  "description": "",
+  "name": "PiStreamer",
+  "version": "1.0.0",
+  "description": "NodeJS app that allows streaming the raspberry pi camera output over websocket to a webpage using a modified version of 131/h264-live-player.",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
