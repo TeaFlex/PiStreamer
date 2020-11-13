@@ -1,11 +1,11 @@
 const express = require('express');
 const app = express();
 const port = 8070;
-const stream = require('pistreamer').createServer(app, {
-    fps: 24,
-    height: 244,
-    width: 352
-});
+const server = require('http').createServer(app);
+const PiStream = require('pistreamer').PiStream;
+const Ws = require('ws').Server;
+const ws_server = new Ws({server});
+const stream = new PiStream(ws_server);
 
 app.set('view engine', 'ejs');
 app.use(express.static('public'));
@@ -19,7 +19,7 @@ app.post("/options", (req, res) => {
     console.log(req.body('heigth'));
 })
 
-stream.listen(port, () => {
+server.listen(port, () => {
     console.clear();
     require('pistreamer').createClient('./public');
     console.log(`App running and listening to port ${port}`);
