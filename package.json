@@ -1,6 +1,6 @@
 {
   "name": "pistreamer",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "NodeJS app that allows streaming the raspberry pi camera output over websocket to a webpage using a modified version of 131/h264-live-player.",
   "main": "./lib/pistream_server.js",
   "scripts": {
