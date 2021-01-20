@@ -5118,7 +5118,10 @@ var WSAvcPlayer = new Class({
       this.ws.close();
       delete this.ws;
     }
-    this.ws = new WebSocket(url);
+    if(ws_in == null)
+      this.ws = new WebSocket(url);
+    else
+      this.ws = ws_in;
     this.ws.binaryType = "arraybuffer";
 
     this.ws.onopen = () => {
@@ -5212,6 +5215,10 @@ var WSAvcPlayer = new Class({
     this.ws.send("STOPSTREAM");
     log("Sent STOPSTREAM");
   },
+
+  send : function(data) {
+    this.ws.send(data);
+  }
 });
 
 
