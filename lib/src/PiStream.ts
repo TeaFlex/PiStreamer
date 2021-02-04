@@ -1,16 +1,18 @@
 import ws from 'ws';
 import merge from 'lodash.merge';
 import {spawn, ChildProcessWithoutNullStreams} from 'child_process';
-import util from 'util';
 import fs from 'fs';
 import http from 'http';
 import {join} from 'path';
 import {Options} from './Options'
 import stream from 'stream';
+import winston, { log } from 'winston';
+import {logger} from './Notifications'
 const Splitter = require('stream-split');
 
 export class PiStreamServer {
 
+    static log: winston.Logger = logger;
     private buffer: Buffer = Buffer.from([0,0,0,1]);
     private streamer?: ChildProcessWithoutNullStreams | null;
     private readStream?: stream.Readable | null;
@@ -29,17 +31,16 @@ export class PiStreamServer {
         this.streamClients = [];
         this.options = merge(this.defaultOptions, options);
         this.wsServer = wsServer;
-
         this.wsServer.on('connection', this.newClient);
     }
 
-    stopFeed() {
+    stopFeed = () => {
         process.kill(-this.streamer!.pid);
         this.streamer = null;
         this.readStream = null;
     }
 
-    startFeed() {
+    startFeed = () => {
         if(this.readStream == null || this.readStream == undefined)
             this.getFeed();
         
@@ -49,7 +50,8 @@ export class PiStreamServer {
         this.readStream! = rStream;
     }
 
-    getFeed() {
+    getFeed = () => {
+        PiStreamServer.log.info(`Beginning to stream ${this.options.width}x${this.options.height} output at ${this.options.fps}FPS.`);
         var opts: Array<any> = ['-t', '0', '-o', '-', '-w', 
         this.options.width, '-h', this.options.height, 
         '-fps', this.options.fps, '-pf', 'baseline', '-vf'];
@@ -59,7 +61,7 @@ export class PiStreamServer {
         });
     }
 
-    broadcast(data: any) {
+    broadcast = (data: any) => {
         this.streamClients.forEach((socket: any) => {
             if(socket.buzy)
                 return;
@@ -73,13 +75,16 @@ export class PiStreamServer {
         });
     }
 
-    newClient(socket: ws) {
+    newClient = (socket: ws) => {
         var userLimit = (this.options.limit! > 0)? this.options.limit! : 0;
         var condition = (userLimit == 0)? true : (this.wsServer.clients.size <= userLimit);
         var self = this;
+        
 
         if(condition) {
             this.streamClients.push(socket);
+
+            PiStreamServer.log.info(`Someone just connected ! (${self.wsServer.clients.size} user(s) online.)`);
 
             socket.send(JSON.stringify({
                 action: "init",
@@ -88,6 +93,7 @@ export class PiStreamServer {
             }));
 
             socket.on('close', () => {
+                PiStreamServer.log.info(`Someone just left. (${self.wsServer.clients.size} user(s) online.)`);
                 if(self.streamer != null)
                     self.readStream!.destroy();
                 
@@ -99,6 +105,8 @@ export class PiStreamServer {
 
             socket.on("message", (data: any) => {
                 var cmd = "" + data, action = data.split(' ')[0];
+
+                PiStreamServer.log.info(`Action incoming: ${action}`);
         
                 //All of these actions are executed for all the connected users !
                 try {
@@ -138,7 +146,7 @@ export class PiStreamServer {
                     }
                 } 
                 catch (error) {
-                    console.log(error);
+                    PiStreamServer.log.error(error);
                 }
             });
         }
