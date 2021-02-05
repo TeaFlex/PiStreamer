@@ -20,12 +20,18 @@ PiStreamer has been created due to a need of a streaming module for my end-of-st
   
 
 ```
-
 npm i pistreamer
-
 ```
 
-  
+## Example
+```
+mkdir piStream-example
+git clone https://github.com/TeaFlex/PiStreamer.git
+cd piStream-example
+npm i
+cd example
+npm i && node example.js
+```
 
 ## Usage
 
