@@ -1,13 +1,13 @@
 {
   "name": "pistreamer",
-  "version": "1.0.1",
-  "description": "NodeJS app that allows streaming the raspberry pi camera output over websocket to a webpage using a modified version of 131/h264-live-player.",
+  "version": "1.0.0",
+  "description": "NodeJS app that allows streaming the raspberry pi camera module output over websocket to a webpage using a modified version of 131/h264-live-player.",
   "main": "./lib/dist/PiStream.js",
   "scripts": {
     "test": "cd ./example && node example",
     "build": "tsc"
   },
-  "author": "Tealfex",
+  "author": "Teaflex",
   "license": "ISC",
   "dependencies": {
     "lodash.merge": "^4.6.2",
@@ -21,5 +21,23 @@
     "typescript": "^4.1.3",
     "@types/lodash.merge": "^4.6.6",
     "@types/ws": "^7.4.0"
-  }
+  },
+  "directories": {
+    "example": "example",
+    "lib": "lib"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/TeaFlex/PiStreamer.git"
+  },
+  "keywords": [
+    "rasberrypi",
+    "typescript",
+    "streaming",
+    "camera"
+  ],
+  "bugs": {
+    "url": "https://github.com/TeaFlex/PiStreamer/issues"
+  },
+  "homepage": "https://github.com/TeaFlex/PiStreamer#readme"
 }
