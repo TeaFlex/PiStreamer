@@ -4,9 +4,8 @@ import {spawn, ChildProcessWithoutNullStreams} from 'child_process';
 import fs from 'fs';
 import http from 'http';
 import {join} from 'path';
-import {Options} from './Options'
 import stream from 'stream';
-import winston, { log } from 'winston';
+import winston from 'winston';
 import {logger} from './Notifications'
 const Splitter = require('stream-split');
 
@@ -18,8 +17,8 @@ export class PiStreamServer {
     private readStream?: stream.Readable | null;
     private streamClients: Array<ws>;
     private wsServer: ws.Server;
-    private options: Options;
-    private readonly defaultOptions: Options = {
+    private options: StreamOptions;
+    private readonly defaultOptions: StreamOptions = {
         height: 240,
         width: 480,
         fps: 12,
@@ -27,7 +26,7 @@ export class PiStreamServer {
         limit: 0
     }
 
-    constructor(wsServer: ws.Server, options?: Options) {
+    constructor(wsServer: ws.Server, options?: StreamOptions) {
         this.streamClients = [];
         this.options = merge(this.defaultOptions, options);
         this.wsServer = wsServer;
@@ -51,13 +50,14 @@ export class PiStreamServer {
     }
 
     getFeed = () => {
-        PiStreamServer.log.info(`Beginning to stream ${this.options.width}x${this.options.height} output at ${this.options.fps}FPS.`);
+        PiStreamServer.log.info(`Streaming ${this.options.width}x${this.options.height} output at ${this.options.fps}FPS.`);
         var opts: Array<any> = ['-t', '0', '-o', '-', '-w', 
         this.options.width, '-h', this.options.height, 
         '-fps', this.options.fps, '-pf', 'baseline', '-vf'];
         this.streamer = spawn('raspivid', opts, {detached: true});
         this.streamer!.on('exit', (code) => {
             var msg = (code === null)? 'Stream Exit' : `Failure code ${code}`;
+            PiStreamServer.log.log((code === null)? 'info': 'error', msg);
         });
     }
 
@@ -153,20 +153,27 @@ export class PiStreamServer {
     }
 }
 
-export var createServer = (requestListner: http.RequestListener, video: Options): http.Server => {
+export const createServer = (requestListner: http.RequestListener, video: StreamOptions): http.Server => {
     var server = http.createServer(requestListner);
     var stream = new PiStreamServer(new ws.Server({server}), video);
     return server;
 }
 
-export var createClient = (path='.') => {
+export const createClient = (path='.') => {
     try {
-        var file = 'http-live-player.js';
-        if(fs.existsSync(path)){
+        var file = '131-http-live-player-mod.js';
+        if(fs.existsSync(path))
             fs.createReadStream(join(__dirname, '../client/'+file)).pipe(fs.createWriteStream(join(path, file)));
-        }
     } 
     catch (error) {
-        console.log(error);
+        PiStreamServer.log.error(error);
     }
+}
+
+export interface StreamOptions {
+    height?: number;
+    width?: number;
+    fps?: number;
+    dynamic?: boolean;
+    limit?: number;
 }

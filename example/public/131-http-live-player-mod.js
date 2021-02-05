@@ -5111,7 +5111,7 @@ var WSAvcPlayer = new Class({
     this.avc.decode(data);
   },
 
-  connect : function(url, ws_in) {
+  connect : function({url, ws_in}) {
 
     // Websocket initialization
     if (this.ws != undefined) {
