@@ -19,12 +19,18 @@ export class PiStreamServer {
     private wsServer: ws.Server;
     private options: StreamOptions;
     private readonly defaultOptions: StreamOptions = {
-        height: 240,
-        width: 480,
-        fps: 12,
+        videoOptions: {
+            height: 240,
+            width: 480,
+            framerate: 12,
+            imxfx: ImageEffects.none,
+            brightness: 50,
+            saturation: 50, 
+            sharpness: 50,
+            contrast: 50
+        },
         dynamic: true,
-        limit: 0,
-        effect: ImageEffects.none
+        limit: 0
     }
 
     constructor(wsServer: ws.Server, options?: StreamOptions) {
@@ -52,12 +58,19 @@ export class PiStreamServer {
 
     getFeed = () => {
 
-        var opts: Array<any> = ['-t', '0', '-o', '-', '-w', 
-        this.options.width, '-h', this.options.height, 
-        '-fps', this.options.fps, '-pf', 'baseline', 
-        (this.options.vFlip? '-vf':''), (this.options.hFlip)? '-hf': '',
-        '-ifx', this.options.effect];
-        PiStreamServer.log.info(`Streaming ${this.options.width}x${this.options.height} output at ${this.options.fps}FPS.`);
+        var opts: Array<any> = ['-t', '0', '-o', '-', '-pf', 'baseline'];
+        var opt: keyof VideoOptions;
+        for(opt in this.options.videoOptions) {
+            var current = this.options.videoOptions![opt];
+            opts.push(`--${opt.toLowerCase()}`);
+            if(opt == "imxfx")
+                opts.push(ImageEffects[<number>current])
+            else if(opt != "vFlip" && opt != "hFlip")
+                opts.push(current);
+        }
+        console.log(opts);
+        
+        PiStreamServer.log.info(`Start of stream !`);
 
         this.streamer = spawn('raspivid', opts, {detached: true});
 
@@ -98,8 +111,8 @@ export class PiStreamServer {
 
             socket.send(JSON.stringify({
                 action: "init",
-                width: self.options.width,
-                height: self.options.height
+                width: self.options.videoOptions!.width,
+                height: self.options.videoOptions!.height
             }));
 
             socket.on('close', () => {
@@ -181,18 +194,22 @@ export const createClient = (path='.') => {
 }
 
 export interface StreamOptions {
-    height?: number;
-    width?: number;
-    fps?: number;
+    videoOptions?: VideoOptions;
     dynamic?: boolean;
     limit?: number;
+}
+
+interface VideoOptions {
+    height?: number;
+    width?: number;
+    framerate?: number;
     hFlip?: boolean;
     vFlip?: boolean;
     brightness?: number;
     contrast?: number;
     sharpness?: number;
     saturation?: number;
-    effect?: ImageEffects;
+    imxfx?: ImageEffects;
 }
 
 export enum ImageEffects {
