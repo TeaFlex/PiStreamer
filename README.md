@@ -11,7 +11,7 @@ PiStreamer is a nodeJS module that allows streaming the raspberry pi camera modu
 
   
 
-PiStreamer has been created due to a need of a streaming module for my end-of-studies work. When looking for a suitable one that could fulfill my expectations, I've found the amazing [131's repository](https://github.com/131/h264-live-player). I reworked and simplefied the server side in Typescript and modded the client decoder according to my needs.
+PiStreamer has been created due to a need of a streaming module for my end-of-studies work. When looking for a suitable one that could fulfill my expectations, I've found the amazing [131's repository](https://github.com/131/h264-live-player). I reworked and simplified the server side in Typescript and modded the client decoder according to my needs.
 
   
 
@@ -25,9 +25,8 @@ npm i pistreamer
 
 ## Example
 ```
-mkdir piStream-example
 git clone https://github.com/TeaFlex/PiStreamer.git
-cd piStream-example
+cd PiStreamer
 npm i
 cd example
 npm i && node example.js

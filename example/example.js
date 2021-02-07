@@ -1,11 +1,13 @@
 const express = require('express');
 const app = express();
 const port = 8070;
-const {createClient, createServer} = require('pistreamer')
+const {createClient, createServer, ImageEffects} = require('pistreamer')
 const piStream = createServer(app, {
     fps: 15,
     height: 244,
-    width: 352
+    width: 352,
+    hFlip: true,
+    effect: ImageEffects.blur
 });
 
 app.set('view engine', 'ejs');

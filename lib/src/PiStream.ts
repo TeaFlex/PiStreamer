@@ -23,7 +23,8 @@ export class PiStreamServer {
         width: 480,
         fps: 12,
         dynamic: true,
-        limit: 0
+        limit: 0,
+        effect: ImageEffects.none
     }
 
     constructor(wsServer: ws.Server, options?: StreamOptions) {
@@ -50,11 +51,20 @@ export class PiStreamServer {
     }
 
     getFeed = () => {
-        PiStreamServer.log.info(`Streaming ${this.options.width}x${this.options.height} output at ${this.options.fps}FPS.`);
+
         var opts: Array<any> = ['-t', '0', '-o', '-', '-w', 
         this.options.width, '-h', this.options.height, 
-        '-fps', this.options.fps, '-pf', 'baseline', '-vf'];
+        '-fps', this.options.fps, '-pf', 'baseline', 
+        (this.options.vFlip? '-vf':''), (this.options.hFlip)? '-hf': '',
+        '-ifx', this.options.effect];
+        PiStreamServer.log.info(`Streaming ${this.options.width}x${this.options.height} output at ${this.options.fps}FPS.`);
+
         this.streamer = spawn('raspivid', opts, {detached: true});
+
+        this.streamer.on('error', (error) => {
+            PiStreamServer.log.error(error.message);
+        })
+        
         this.streamer!.on('exit', (code) => {
             var msg = (code === null)? 'Stream Exit' : `Failure code ${code}`;
             PiStreamServer.log.log((code === null)? 'info': 'error', msg);
@@ -176,4 +186,36 @@ export interface StreamOptions {
     fps?: number;
     dynamic?: boolean;
     limit?: number;
+    hFlip?: boolean;
+    vFlip?: boolean;
+    brightness?: number;
+    contrast?: number;
+    sharpness?: number;
+    saturation?: number;
+    effect?: ImageEffects;
+}
+
+export enum ImageEffects {
+    none,
+    negative,
+    solarise,
+    posterise,
+    whiteboard,
+    blackboard,
+    sketch,
+    denoise,
+    emboss,
+    oilpaint,
+    hatch,
+    gpen,
+    pastel,
+    watercolour,
+    film,
+    blur,
+    saturation,
+    colourswap,
+    washedout,
+    colourpoint,
+    colourbalance,
+    cartoon
 }
