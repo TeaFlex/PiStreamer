@@ -7,6 +7,9 @@ import {join} from 'path';
 import stream from 'stream';
 import winston from 'winston';
 import {logger} from './Notifications'
+import { StreamOptions } from './interfaces/StreamOptions';
+import { ImageEffects } from './enums/ImageEffects';
+import { VideoOptions } from './interfaces/VideoOptions';
 const Splitter = require('stream-split');
 
 export class PiStreamServer {
@@ -68,7 +71,6 @@ export class PiStreamServer {
             else if(opt != "vFlip" && opt != "hFlip")
                 opts.push(current);
         }
-        console.log(opts);
         
         PiStreamServer.log.info(`Start of stream !`);
 
@@ -128,9 +130,7 @@ export class PiStreamServer {
 
             socket.on("message", (data: any) => {
                 var cmd = "" + data, action = data.split(' ')[0];
-
-                PiStreamServer.log.info(`Action incoming: ${action}`);
-        
+                var validAction: boolean = true;
                 //All of these actions are executed for all the connected users !
                 try {
                     switch(action){
@@ -166,7 +166,13 @@ export class PiStreamServer {
                             else
                                 self.readStream!.pause()
                         break;
+                        
+                        default:
+                            validAction = false;
+                            break;
                     }
+                    if(validAction)
+                        PiStreamServer.log.info(`Action incoming: ${action}`);
                 } 
                 catch (error) {
                     PiStreamServer.log.error(error);
@@ -184,7 +190,7 @@ export const createServer = (requestListner: http.RequestListener, video: Stream
 
 export const createClient = (path='.') => {
     try {
-        var file = '131-http-live-player-mod.js';
+        var file = 'http-live-player.js';
         if(fs.existsSync(path))
             fs.createReadStream(join(__dirname, '../client/'+file)).pipe(fs.createWriteStream(join(path, file)));
     } 
@@ -193,46 +199,4 @@ export const createClient = (path='.') => {
     }
 }
 
-export interface StreamOptions {
-    videoOptions?: VideoOptions;
-    dynamic?: boolean;
-    limit?: number;
-}
-
-interface VideoOptions {
-    height?: number;
-    width?: number;
-    framerate?: number;
-    hFlip?: boolean;
-    vFlip?: boolean;
-    brightness?: number;
-    contrast?: number;
-    sharpness?: number;
-    saturation?: number;
-    imxfx?: ImageEffects;
-}
-
-export enum ImageEffects {
-    none,
-    negative,
-    solarise,
-    posterise,
-    whiteboard,
-    blackboard,
-    sketch,
-    denoise,
-    emboss,
-    oilpaint,
-    hatch,
-    gpen,
-    pastel,
-    watercolour,
-    film,
-    blur,
-    saturation,
-    colourswap,
-    washedout,
-    colourpoint,
-    colourbalance,
-    cartoon
-}
+module.exports.ImageEffects = ImageEffects;
