@@ -1,40 +1,30 @@
-# PiStreamer
-
-  
+# PiStreamer 🎥
 
 PiStreamer is a nodeJS module that allows streaming the raspberry pi camera module output over websocket to a webpage using a modified version of [131/h264-live-player](https://github.com/131/h264-live-player).
 
-[![License](https://img.shields.io/badge/license-ISC-green.svg)](http://opensource.org/licenses/ISC)
-
+[![License](https://img.shields.io/badge/license-ISC-green.svg)](http://opensource.org/licenses/ISC) [![NPM version](https://img.shields.io/npm/v/pistreamer.svg?style=flat)](https://npmjs.com/package/pistreamer) [![NPM downloads](https://img.shields.io/npm/dm/pistreamer.svg?style=flat)](https://npmjs.com/package/pistreamer)
 
 ## Origin
 
-  
-
-PiStreamer has been created due to a need of a streaming module for my end-of-studies work. When looking for a suitable one that could fulfill my expectations, I've found the amazing [131's repository](https://github.com/131/h264-live-player). I reworked and simplefied the server side in Typescript and modded the client decoder according to my needs.
-
-  
+PiStreamer has been created due to a need of a streaming module for my end-of-studies work. When looking for a suitable one that could fulfill my expectations, I've found the amazing [131's repository](https://github.com/131/h264-live-player). I reworked and simplified the server side in Typescript ~~and modded the client decoder~~ (not anymore!!) according to my needs.
 
 ## Installation
-
-  
 
 ```
 npm i pistreamer
 ```
 
 ## Example
+
+To run an example of the project, enter the following commands:
 ```
-mkdir piStream-example
 git clone https://github.com/TeaFlex/PiStreamer.git
-cd piStream-example
+cd PiStreamer
 npm i
-cd example
-npm i && node example.js
+npm run test
 ```
 
 ## Usage
-
   
 Server configuration:
 ```js 
@@ -66,7 +56,7 @@ piStreamer.listen(port, () => {
 Client configuration:
 ```html
 <!--Call the script that you generated earlier.-->
-<script src="/131-http-live-player-mod.js"></script>
+<script src="/http-live-player.js"></script>
 
 ```
 
@@ -75,7 +65,7 @@ var canvas = document.createElement("canvas");
 //Pass a canvas to de decoder.
 var player = new WSAvcPlayer(canvas, "webgl", 1, 35);
 //Connect to your server.
-player.connect({url:'ws://your-ip-or-domain-name'});
+player.connect('ws://your-ip-or-domain-name');
 window.player = player;
 
 //Call any function of the player.
@@ -92,6 +82,29 @@ document.getElementById('disconnect').addEventListener('click', () => {
     document.body.removeChild(canvas);
 });
 ```
+
+If you want to send personnalized messages, you can also do like this:
+
+```js
+var canvas = document.createElement("canvas");
+var player = new WSAvcPlayer(canvas, "webgl", 1, 35);
+player.connect('ws://your-ip-or-domain-name');
+//We take the ws client from the player;
+var wsClient = player.ws;
+window.player = player;
+
+document.getElementById('myaction').addEventListener('click', () => {
+    wsClient.send("my personnalized action");
+});
+
+//*Do stuff with player methods*
+```
+
+## Documentation
+
+You can access the documentation of PiStreamer there:
+- [English doc :uk:](/doc/DOCUMENTATION-en.md)
+- [French doc :fr:](/doc/DOCUMENTATION-fr.md)
 
 ## Credits
 
