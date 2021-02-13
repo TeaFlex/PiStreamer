@@ -1,4 +1,4 @@
-# PiStreamer
+# PiStreamer 🎥
 
 PiStreamer is a nodeJS module that allows streaming the raspberry pi camera module output over websocket to a webpage using a modified version of [131/h264-live-player](https://github.com/131/h264-live-player).
 
@@ -103,8 +103,8 @@ document.getElementById('myaction').addEventListener('click', () => {
 ## Documentation
 
 You can access the documentation of PiStreamer there:
-- [English doc :fr:](/doc/DOCUMENTATION-en.md)
-- [French doc :eng:](/doc/DOCUMENTATION-fr.md)
+- [English doc :uk:](/doc/DOCUMENTATION-en.md)
+- [French doc :fr:](/doc/DOCUMENTATION-fr.md)
 
 ## Credits
 
