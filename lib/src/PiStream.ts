@@ -224,8 +224,8 @@ export class PiStreamServer {
  * @param requestListner - Request listener.
  * @param video - Options of the stream.
  */
-export const createServer = (requestListner: http.RequestListener, video?: StreamOptions): http.Server => {
-    var server = http.createServer(requestListner);
+export const createServer = (requestListener: http.RequestListener, video?: StreamOptions): http.Server => {
+    var server = http.createServer(requestListener);
     var stream = new PiStreamServer(new ws.Server({server}), video);
     return server;
 }
