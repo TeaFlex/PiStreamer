@@ -14,6 +14,13 @@ const Splitter = require('stream-split');
 
 export class PiStreamServer {
 
+    /**
+     * Static logger of PiStreamer. You can change the logger by giving 
+     * a winston.Logger object.
+     * ```ts
+     * PiStreamServer.log = winston.createLogger(...);
+     * ```
+     */
     static log: winston.Logger = logger;
     private buffer: Buffer = Buffer.from([0,0,0,1]);
     private streamer?: ChildProcessWithoutNullStreams | null;
@@ -36,22 +43,42 @@ export class PiStreamServer {
         limit: 0
     }
 
+    /**
+     * PiStreamServer constructor.
+     * @param wsServer - Instance of a websocket server.
+     * @param options - Options of the stream.
+     */
     constructor(wsServer: ws.Server, options?: StreamOptions) {
         this.streamClients = [];
         this.options = merge(this.defaultOptions, options);
         this.wsServer = wsServer;
         this.wsServer.on('connection', this.newClient);
+        this.setOptions.bind(this);
     }
 
-    stopFeed = () => {
+    /**
+     * Set the options of the stream.
+     * @param options 
+     */
+    public setOptions(options: StreamOptions) {
+        this.options = merge(this.defaultOptions, options);
+    }
+
+    /**
+     * Stop the feed and kill the raspivid process.
+     */
+    protected stopFeed = () => {
         process.kill(-this.streamer!.pid);
         this.streamer = null;
         this.readStream = null;
     }
 
-    startFeed = () => {
+    /**
+     * Start the feed by creating one if there's none or by continuing the existant one.
+     */
+    protected startFeed = () => {
         if(this.readStream == null || this.readStream == undefined)
-            this.getFeed();
+            this.createFeed();
         
         var rStream = this.streamer!.stdout;
         rStream = rStream.pipe(new Splitter(this.buffer));
@@ -59,8 +86,10 @@ export class PiStreamServer {
         this.readStream! = rStream;
     }
 
-    getFeed = () => {
-
+    /**
+     * Create a new feed by starting a new raspivid process.
+     */
+    protected createFeed = () => {
         var opts: Array<any> = ['-t', '0', '-o', '-', '-pf', 'baseline'];
         var opt: keyof VideoOptions;
         for(opt in this.options.videoOptions) {
@@ -86,7 +115,11 @@ export class PiStreamServer {
         });
     }
 
-    broadcast = (data: any) => {
+    /**
+     * Broadcast the feed to all the websocket client connected.
+     * @param data - Video stream.
+     */
+    protected broadcast = (data: any) => {
         this.streamClients.forEach((socket: any) => {
             if(socket.buzy)
                 return;
@@ -100,7 +133,11 @@ export class PiStreamServer {
         });
     }
 
-    newClient = (socket: ws) => {
+    /**
+     * Actions done when a new client is connected.
+     * @param socket - Client socket.
+     */
+    protected newClient = (socket: ws) => {
         var userLimit = (this.options.limit! > 0)? this.options.limit! : 0;
         var condition = (userLimit == 0)? true : (this.wsServer.clients.size <= userLimit);
         var self = this;
@@ -182,21 +219,33 @@ export class PiStreamServer {
     }
 }
 
-export const createServer = (requestListner: http.RequestListener, video: StreamOptions): http.Server => {
+/**
+ * Creates an instance of PiStreamServer and returns the Http server linked to it. 
+ * @param requestListner - Request listener.
+ * @param video - Options of the stream.
+ */
+export const createServer = (requestListner: http.RequestListener, video?: StreamOptions): http.Server => {
     var server = http.createServer(requestListner);
     var stream = new PiStreamServer(new ws.Server({server}), video);
     return server;
 }
 
+/**
+ * Copy the client file "http-live-player.js" to the given path.
+ * @param path - Path of the target folder.
+ */
 export const createClient = (path='.') => {
     try {
         var file = 'http-live-player.js';
         if(fs.existsSync(path))
-            fs.createReadStream(join(__dirname, '../client/'+file)).pipe(fs.createWriteStream(join(path, file)));
+            fs.createReadStream(join(__dirname, '../../vendor/'+file)).pipe(fs.createWriteStream(join(path, file)));
     } 
     catch (error) {
         PiStreamServer.log.error(error);
     }
 }
 
+/**
+ * Enumeration of the different effects that can be applied to the video.
+ */
 module.exports.ImageEffects = ImageEffects;
