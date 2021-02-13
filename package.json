@@ -4,14 +4,13 @@
   "description": "NodeJS module that allows streaming the raspberry pi camera module output over websocket to a webpage using a modified version of 131/h264-live-player.",
   "main": "./lib/dist/PiStream.js",
   "scripts": {
-    "test": "tsc && cd ./example && npm i && node example",
+    "example": "tsc && cd ./example && npm i && node example",
     "build": "tsc"
   },
   "author": "Teaflex",
   "license": "ISC",
   "dependencies": {
     "lodash.merge": "^4.6.2",
-    "node-static": "^0.7.11",
     "stream-split": "^1.1.0",
     "winston": "^3.3.3",
     "ws": "^7.4.3"
@@ -23,6 +22,7 @@
     "@types/ws": "^7.4.0"
   },
   "directories": {
+    "doc": "doc",
     "example": "example",
     "lib": "lib"
   },
