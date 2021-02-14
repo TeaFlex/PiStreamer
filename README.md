@@ -47,7 +47,7 @@ const piStreamer = createServer(http,{
 //Put some routing here
 
 piStreamer.listen(port, () => {
-	//create a 131-http-live-player-mod.js file in your static folder.
+	//create a http-live-player.js file in your static folder.
 	createClient('./some-static-folder');
 	console.log(`App running and listening to port ${port}`);
 });

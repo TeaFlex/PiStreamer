@@ -5,7 +5,7 @@
  - [createServer()](#createserver---function)
  - [createClient()](#createclient---function)
  - [StreamOptions](#streamoptions---interface)
- -  [VideoOptions](#videooptions---interface)
+ - [VideoOptions](#videooptions---interface)
  - [ImageEffects](#imageeffects---enum)
 
 ## PiStreamServer - [class]

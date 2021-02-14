@@ -5,10 +5,10 @@
  - [createServer()](#createserver---function)
  - [createClient()](#createclient---function)
  - [StreamOptions](#streamoptions---interface)
- -  [VideoOptions](#videooptions---interface)
+ - [VideoOptions](#videooptions---interface)
  - [ImageEffects](#imageeffects---enum)
 
-## PiStreamServer - [class]
+## PiStreamServer - [classe]
 ### Champs
 |Modificateur|  Nom | Type | Commentaire |
 |--|--|--|--|
@@ -33,23 +33,23 @@
 |--|--|--|--|--|
 |public|setOptions|options: PiStreamer.StreamOptions|void|Définit les options du stream.|
 
-## createServer - [function]
+## createServer - [fonction]
 Crée une nouvelle instance de PiStreamServer et retourne le serveur Http lié à ce dernier.
-### Parameters
+### Paramètres
 - requestListener : *http.RequestListener* - Request listener.
 - video? : PiStreamer.StreamOptions - Options du stream.
-### Return
+### Valeur retournée
 - *http.Server*
 
-## createClient - [function]
+## createClient - [fonction]
 Copie le fichier client "http-live-player.js" dans le chemin donné.
-### Parameters
+### Paramètres
 - path : *string* - Chemin du dossier cible.
-### Return
+### Valeur retournée
 - *void*
 
 ## StreamOptions - [interface]
-|Nom du champ| Type | Commentaire |
+|Nom du champs| Type | Commentaire |
 |--|--|--|
 |videoOptions?|PiStreamer.VideoOptions|Options relative à la sortie vidéo.|
 |dynamic?|boolean|Définit l'arrêt dynamique du stream. Si la valeur est vraie, le stream s'arrêtera s'il ne reste plus aucun spectateur.|
@@ -71,7 +71,7 @@ Copie le fichier client "http-live-player.js" dans le chemin donné.
 
 ## ImageEffects - [enum]
 Valeurs pouvant être utilisées pour appliquer un effet à l'image de la vidéo. Il se pourrait que quelques des effets ne fonctionnent pas, cela dépend entièrement de la version actuelle de raspivid.
-### Values: 
+### Valeurs: 
 -   none: pas d'effet (par défaut)
 -   negative: inverse les couleurs de l'image
 -   solarise: solarise l'image

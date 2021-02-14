@@ -3,9 +3,14 @@
   "version": "1.1.0",
   "description": "NodeJS module that allows streaming the raspberry pi camera module output over websocket to a webpage using a modified version of 131/h264-live-player.",
   "main": "./lib/dist/PiStream.js",
+  "types": "./lib/dist/PiStream.d.ts",
   "scripts": {
+    "test": "echo \"There isn't any test to run for now.\"",
     "example": "tsc && cd ./example && npm i && node example",
-    "build": "tsc"
+    "build": "tsc",
+    "preversion": "npm test",
+    "version": "npm run build",
+    "postversion": "git push && git push --tags"
   },
   "author": "Teaflex",
   "license": "ISC",
