@@ -7,7 +7,7 @@
  - [StreamOptions](#streamoptions---interface)
  - [VideoOptions](#videooptions---interface)
  - [ImageEffects](#imageeffects---enum)
- - [Evènements WebSocket](#evenements-websocket)
+ - [Evènements WebSocket](#evènements-websocket)
 
 ## PiStreamServer - [classe]
 ### Champs
