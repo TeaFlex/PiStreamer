@@ -38,7 +38,7 @@ the stream will end if there's no viewers left and there's a limit of 5 viewers.
 */
 const piStreamer = createServer(http,{
 	videoOptions: {
-		fps: 15,
+		framerate: 15,
 		height: 244,
 		width: 352
 	},
