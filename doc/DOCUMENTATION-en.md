@@ -7,6 +7,7 @@
  - [StreamOptions](#streamoptions---interface)
  - [VideoOptions](#videooptions---interface)
  - [ImageEffects](#imageeffects---enum)
+ - [WebSocket Events](#websocket-events)
 
 ## PiStreamServer - [class]
 ### Fields
@@ -97,3 +98,11 @@ Values that can be used to apply an effect to the image of the video. Some effec
 -   cartoon: not fully implemented
 
 Source: [Raspivid documentation](https://www.raspberrypi.org/documentation/raspbian/applications/camera.md).
+
+## WebSocket events
+Included events to the PiStreamer WebSocket server to control the video stream.
+### Values:
+ -  REQUESTSTREAM: Start a stream if there's none.
+ -  STOPSTREAM: Stop the current stream.
+ -  clientPAUSESTREAM: Suspends the stream for the client who sent the request (WIP).
+ -  globalPAUSESTREAM: Suspends the stream for all the connected clients.

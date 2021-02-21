@@ -37,9 +37,11 @@ the given options. Here, it will stream a 244x352 video at 15 fps,
 the stream will end if there's no viewers left and there's a limit of 5 viewers.
 */
 const piStreamer = createServer(http,{
-	fps: 15,
-	height: 244,
-	width: 352,
+	videoOptions: {
+		fps: 15,
+		height: 244,
+		width: 352
+	},
 	dynamic: true,
 	limit: 5
 });

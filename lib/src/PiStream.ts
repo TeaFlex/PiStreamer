@@ -244,8 +244,3 @@ export const createClient = (path='.') => {
         PiStreamServer.log.error(error);
     }
 }
-
-/**
- * Enumeration of the different effects that can be applied to the video.
- */
-module.exports.ImageEffects = ImageEffects;
