@@ -1,4 +1,4 @@
-import winston, { Logger } from 'winston';
+import winston from 'winston';
 
 export var logger = winston.createLogger({
     format: winston.format.simple(),

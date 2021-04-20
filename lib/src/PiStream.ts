@@ -1,16 +1,18 @@
-import ws from 'ws';
-import merge from 'lodash.merge';
-import {spawn, ChildProcessWithoutNullStreams} from 'child_process';
+import { Server as WsServer } from 'ws';
+import { spawn, ChildProcessWithoutNullStreams } from 'child_process';
 import fs from 'fs';
 import http from 'http';
-import {join} from 'path';
+import { join } from 'path';
 import stream from 'stream';
 import winston from 'winston';
-import {logger} from './Notifications'
-import { StreamOptions } from './interfaces/StreamOptions';
-import { ImageEffects } from './enums/ImageEffects';
-import { VideoOptions } from './interfaces/VideoOptions';
-const Splitter = require('stream-split');
+import { logger } from './utils/logger'
+import { ImageEffects } from './enums';
+import { 
+    VideoOptions, 
+    WsClient, 
+    StreamOptions 
+} from './interfaces';
+import Splitter from 'stream-split';
 
 export class PiStreamServer {
 
@@ -25,8 +27,8 @@ export class PiStreamServer {
     private buffer: Buffer = Buffer.from([0,0,0,1]);
     private streamer?: ChildProcessWithoutNullStreams | null;
     private readStream?: stream.Readable | null;
-    private streamClients: Array<ws>;
-    private wsServer: ws.Server;
+    private streamClients: WsClient[];
+    private wsServer: WsServer;
     private options: StreamOptions;
     private readonly defaultOptions: StreamOptions = {
         videoOptions: {
@@ -48,12 +50,22 @@ export class PiStreamServer {
      * @param wsServer - Instance of a websocket server.
      * @param options - Options of the stream.
      */
-    constructor(wsServer: ws.Server, options?: StreamOptions) {
+    constructor(wsServer: WsServer, options?: StreamOptions) {
         this.streamClients = [];
-        this.options = merge(this.defaultOptions, options);
+        this.options = { 
+            ...this.defaultOptions, 
+            ...options
+        };
         this.wsServer = wsServer;
+
+        this.setOptions = this.setOptions.bind(this);
+        this.stopFeed = this.stopFeed.bind(this);
+        this.startFeed = this.startFeed.bind(this);
+        this.createFeed = this.createFeed.bind(this);
+        this.broadcast = this.broadcast.bind(this);
+        this.newClient = this.newClient.bind(this);
+
         this.wsServer.on('connection', this.newClient);
-        this.setOptions.bind(this);
     }
 
     /**
@@ -61,14 +73,18 @@ export class PiStreamServer {
      * @param options 
      */
     public setOptions(options: StreamOptions) {
-        this.options = merge(this.defaultOptions, options);
+        this.options = {
+            ...this.defaultOptions, 
+            ...options
+        };
     }
 
     /**
      * Stop the feed and kill the raspivid process.
      */
-    protected stopFeed = () => {
-        process.kill(-this.streamer!.pid);
+    protected stopFeed() {
+        if(this.streamer)
+            process.kill(-this.streamer.pid);
         this.streamer = null;
         this.readStream = null;
     }
@@ -76,11 +92,11 @@ export class PiStreamServer {
     /**
      * Start the feed by creating one if there's none or by continuing the existant one.
      */
-    protected startFeed = () => {
-        if(this.readStream == null || this.readStream == undefined)
+    protected startFeed() {
+        if(!this.readStream)
             this.createFeed();
         
-        var rStream = this.streamer!.stdout;
+        let rStream = this.streamer!.stdout;
         rStream = rStream.pipe(new Splitter(this.buffer));
         rStream.on('data', this.broadcast);
         this.readStream! = rStream;
@@ -89,16 +105,16 @@ export class PiStreamServer {
     /**
      * Create a new feed by starting a new raspivid process.
      */
-    protected createFeed = () => {
-        var opts: Array<any> = ['-t', '0', '-o', '-', '-pf', 'baseline'];
-        var opt: keyof VideoOptions;
+    protected createFeed() {
+        const opts: string[] = ['-t', '0', '-o', '-', '-pf', 'baseline'];
+        let opt: keyof VideoOptions;
         for(opt in this.options.videoOptions) {
-            var current = this.options.videoOptions![opt];
+            const current = this.options.videoOptions![opt];
             opts.push(`--${opt.toLowerCase()}`);
-            if(opt == "imxfx")
-                opts.push(ImageEffects[<number>current])
-            else if(opt != "vFlip" && opt != "hFlip")
-                opts.push(current);
+            if(opt === "imxfx")
+                opts.push(ImageEffects[current as number])
+            else if(opt !== "vFlip" && opt !== "hFlip")
+                opts.push(String(current));
         }
         
         PiStreamServer.log.info(`Start of stream !`);
@@ -107,11 +123,11 @@ export class PiStreamServer {
 
         this.streamer.on('error', (error) => {
             PiStreamServer.log.error(error.message);
-        })
+        });
         
-        this.streamer!.on('exit', (code) => {
-            var msg = (code === null)? 'Stream Exit' : `Failure code ${code}`;
-            PiStreamServer.log.log((code === null)? 'info': 'error', msg);
+        this.streamer.on('exit', (code) => {
+            const msg = (!code)? 'Stream Exit' : `Failure code ${code}`;
+            PiStreamServer.log.log((!code)? 'info': 'error', msg);
         });
     }
 
@@ -119,49 +135,52 @@ export class PiStreamServer {
      * Broadcast the feed to all the websocket client connected.
      * @param data - Video stream.
      */
-    protected broadcast = (data: any) => {
-        this.streamClients.forEach((socket: any) => {
+    protected broadcast(data: any) {
+        for (const socket of this.streamClients) {
             if(socket.buzy)
                 return;
 
             socket.buzy = true;
             socket.buzy = false;
 
-            socket.send(Buffer.concat([this.buffer, data]), { binary: true}, function ack(error: any) {
+            socket.send(Buffer.concat([this.buffer, data]), 
+            { 
+                binary: true,
+                compress: true
+            }, 
+            (error) => {
                 socket.buzy = false;
             });
-        });
+        }
     }
 
     /**
      * Actions done when a new client is connected.
      * @param socket - Client socket.
      */
-    protected newClient = (socket: ws) => {
-        var userLimit = (this.options.limit! > 0)? this.options.limit! : 0;
-        var condition = (userLimit == 0)? true : (this.wsServer.clients.size <= userLimit);
-        var self = this;
-        
+    protected newClient(socket: WsClient) {
+        const userLimit = (this.options.limit! > 0)? this.options.limit! : 0;
+        const condition = (!userLimit)? true : (this.wsServer.clients.size <= userLimit);
 
         if(condition) {
             this.streamClients.push(socket);
 
-            PiStreamServer.log.info(`Someone just connected ! (${self.wsServer.clients.size} user(s) online.)`);
+            PiStreamServer.log.info(`Someone just connected ! (${this.wsServer.clients.size} user(s) online.)`);
 
             socket.send(JSON.stringify({
                 action: "init",
-                width: self.options.videoOptions!.width,
-                height: self.options.videoOptions!.height
+                width: this.options.videoOptions!.width,
+                height: this.options.videoOptions!.height
             }));
 
             socket.on('close', () => {
-                PiStreamServer.log.info(`Someone just left. (${self.wsServer.clients.size} user(s) online.)`);
-                if(self.streamer != null)
-                    self.readStream!.destroy();
+                PiStreamServer.log.info(`Someone just left. (${this.wsServer.clients.size} user(s) online.)`);
+                if(this.streamer != null)
+                    this.readStream!.destroy();
                 
-                if(self.options.dynamic) {
-                    if(self.wsServer.clients.size == 0 && self.streamer != null)
-                        self.stopFeed();
+                if(this.options.dynamic) {
+                    if(this.wsServer.clients.size && this.streamer)
+                        this.stopFeed();
                 }
             });
 
@@ -173,35 +192,36 @@ export class PiStreamServer {
                     switch(action){
                         //Start the stream
                         case "REQUESTSTREAM":
-                            if(self.streamer != null && self.streamer != undefined)
+                            if(this.streamer)
                                 throw "A stream already exists.";
-                            self.startFeed();
+                            this.startFeed();
                         break;
                         
                         //Stop the stream
                         case "STOPSTREAM":
-                            if(self.streamer == null || self.streamer == undefined)
+                            if(!this.streamer)
                                 throw "There's no stream to stop.";
-                            self.stopFeed();
+                            this.stopFeed();
                         break;
         
                         //Toggle pause the stream
                         case "clientPAUSESTREAM":
-                            if(self.streamClients.includes(socket)) {
-                                var id = self.streamClients.indexOf(socket);
-                                self.streamClients.splice(id-1,1);
+                            if(this.streamClients.includes(socket)) {
+                                //TODO: make it work
+                                var id = this.streamClients.indexOf(socket);
+                                this.streamClients.splice(id-1,1);
                             }
                             else
-                                self.streamClients.push(socket);  
+                                this.streamClients.push(socket);  
                         break;
         
                         case "globalPAUSESTREAM":
-                            if(self.streamer == null || self.streamer != undefined)
+                            if(!this.streamer)
                                 throw "There's no stream to pause.";
-                            if(self.readStream!.isPaused())                        
-                                self.readStream!.read()
+                            else if(this.readStream!.isPaused())                        
+                                this.readStream!.read()
                             else
-                                self.readStream!.pause()
+                                this.readStream!.pause()
                         break;
                         
                         default:
@@ -225,8 +245,8 @@ export class PiStreamServer {
  * @param video - Options of the stream.
  */
 export const createServer = (requestListener: http.RequestListener, video?: StreamOptions): http.Server => {
-    var server = http.createServer(requestListener);
-    var stream = new PiStreamServer(new ws.Server({server}), video);
+    const server = http.createServer(requestListener);
+    const stream = new PiStreamServer(new WsServer({server}), video);
     return server;
 }
 
@@ -236,7 +256,7 @@ export const createServer = (requestListener: http.RequestListener, video?: Stre
  */
 export const createClient = (path='.') => {
     try {
-        var file = 'http-live-player.js';
+        const file = 'http-live-player.js';
         if(fs.existsSync(path))
             fs.createReadStream(join(__dirname, '../../vendor/'+file)).pipe(fs.createWriteStream(join(path, file)));
     } 

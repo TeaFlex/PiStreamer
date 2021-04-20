@@ -2,3 +2,4 @@ node_modules
 */dist
 */old
 example/public/http-live-player.js
+*.bak

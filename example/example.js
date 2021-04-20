@@ -7,7 +7,6 @@ const piStream = createServer(app, {
         framerate: 25,
         height: 244,
         width: 352,
-        imxfx: ImageEffects.colourswap,
         vFlip: true
     }
 });
