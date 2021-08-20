@@ -26,7 +26,7 @@ npm run test
 
 ## Usage
   
-Server configuration:
+### Server configuration:
 ```js 
 const http = require('http');
 const {createClient, createServer} = require('pistreamer');
@@ -49,58 +49,14 @@ const piStreamer = createServer(http,{
 //Put some routing here
 
 piStreamer.listen(port, () => {
-	//create a http-live-player.js file in your static folder.
-	createClient('./some-static-folder');
 	console.log(`App running and listening to port ${port}`);
 });
 ```
 
-Client configuration:
-```html
-<!--Call the script that you generated earlier.-->
-<script src="/http-live-player.js"></script>
+### Client configuration:
 
-```
-
-```js
-var canvas = document.createElement("canvas");
-//Pass a canvas to de decoder.
-var player = new WSAvcPlayer(canvas, "webgl", 1, 35);
-//Connect to your server.
-player.connect('ws://your-ip-or-domain-name');
-window.player = player;
-
-//Call any function of the player.
-document.getElementById('startStream').addEventListener('click', () => {
-    player.playStream();
-    document.body.appendChild(canvas);
-});
-document.getElementById('stopStream').addEventListener('click', () => {
-    player.stopStream();
-    document.body.removeChild(canvas);
-});
-document.getElementById('disconnect').addEventListener('click', () => {
-    player.disconnet();
-    document.body.removeChild(canvas);
-});
-```
-
-If you want to send personnalized messages, you can also do like this:
-
-```js
-var canvas = document.createElement("canvas");
-var player = new WSAvcPlayer(canvas, "webgl", 1, 35);
-player.connect('ws://your-ip-or-domain-name');
-//We take the ws client from the player;
-var wsClient = player.ws;
-window.player = player;
-
-document.getElementById('myaction').addEventListener('click', () => {
-    wsClient.send("my personnalized action");
-});
-
-//*Do stuff with player methods*
-```
+The client-side depends on the [ts-h264-live-player]() package.
+To correctly configure the client, please refer to the [ts-h264-live-player documentation](https://github.com/TeaFlex/ts-h264-live-player).
 
 ## Documentation
 

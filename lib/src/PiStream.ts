@@ -249,18 +249,3 @@ export const createServer = (requestListener: http.RequestListener, video?: Stre
     const stream = new PiStreamServer(new WsServer({server}), video);
     return server;
 }
-
-/**
- * Copy the client file "http-live-player.js" to the given path.
- * @param path - Path of the target folder.
- */
-export const createClient = (path='.') => {
-    try {
-        const file = 'http-live-player.js';
-        if(fs.existsSync(path))
-            fs.createReadStream(join(__dirname, '../../vendor/'+file)).pipe(fs.createWriteStream(join(path, file)));
-    } 
-    catch (error) {
-        PiStreamServer.log.error(error);
-    }
-}
